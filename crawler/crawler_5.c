@@ -46,7 +46,8 @@ int32_t pagesave(webpage_t *pagep, int id, char *dirname){
 
 	// make the necessary string buffers
 
-	char *path = NULL;
+	char buff[100];
+	char *path = buff;
 	sprintf(path, "%s/%d", dirname, id);
 	FILE *fp = fopen(path, "w");
 
@@ -95,6 +96,7 @@ int main(void){
 			printf("Failed to save the page.\n");
 			exit(EXIT_FAILURE);
 		}
+
 		
     qapply(qp, printpages);
     qapply(qp, webpage_delete);
