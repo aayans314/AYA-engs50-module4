@@ -9,3 +9,7 @@
 
 # Debugging Symbols
 *.dSYM
+
+# pages stored
+pages/
+
