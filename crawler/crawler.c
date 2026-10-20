@@ -19,9 +19,9 @@
 #include "webpage.h"
 #include "queue.h"
 #include "hash.h"
+#include "pageio.h"
 
 #define HTSIZE 100     /* number of slots in the hash table of visited URLs */
-#define MAXPATH 512    /* longest file path pagesave() will build */
 
 /* usage(): print the usage statement and exit with failure */
 static void usage(void) {
@@ -59,33 +59,6 @@ static bool isdirectory(const char *dirname) {
 
 	return stat(dirname, &sb) == 0 && S_ISDIR(sb.st_mode) &&
 	       access(dirname, W_OK | X_OK) == 0;
-}
-
-/* pagesave(): save a fetched page in the file dirname/id; the file holds
- * the URL, the depth, and the HTML length (one per line), then the HTML.
- * Returns 0 on success, nonzero on failure.
- */
-int32_t pagesave(webpage_t *pagep, int id, char *dirname) {
-	char path[MAXPATH];
-	FILE *fp;
-	int n;
-	int32_t result = 1;
-
-	if (pagep != NULL && dirname != NULL) {
-		n = snprintf(path, MAXPATH, "%s/%d", dirname, id);
-		if (n > 0 && n < MAXPATH) {
-			fp = fopen(path, "w");
-			if (fp != NULL) {
-				fprintf(fp, "%s\n", webpage_getURL(pagep));
-				fprintf(fp, "%d\n", webpage_getDepth(pagep));
-				fprintf(fp, "%d\n", webpage_getHTMLlen(pagep));
-				fprintf(fp, "%s", webpage_getHTML(pagep));
-				fclose(fp);
-				result = 0;
-			}
-		}
-	}
-	return result;
 }
 
 /* addurl(): if url has not been seen before, remember it in the hash table
