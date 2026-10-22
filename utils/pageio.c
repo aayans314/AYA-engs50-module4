@@ -59,7 +59,7 @@ int32_t pagesave(webpage_t *pagep, int id, char *dirnm) {
 webpage_t *pageload(int id, char *dirnm){
 	char path[MAXPATH], url[MAXURL], *html;
 	FILE *fp;
-	int n, depth, length, ch;
+	int i, n, depth, length, ch;
 	
 	webpage_t *result = NULL;
 
@@ -71,16 +71,17 @@ webpage_t *pageload(int id, char *dirnm){
 				if (fscanf(fp, "%s %d %d", url, &depth, &length) == 3){
 					if ((ch = fgetc(fp)) != EOF){
 						html = malloc((size_t)length+1);
-						for (int i = 0; i < length; i++){
-						  if ((ch = fgetc(fp)) != EOF) {
+						if (html != NULL){
+							for (i = 0; i < length; i++){
+								ch = fgetc(fp);
 								html[i] = (char)ch;
 							}
+							html[length] = '\0';
+							if (i == length){
+								result = webpage_new(url, depth, html);
+							}
+							free(html);
 						}
-						html[length] = '\0';
-						if ((int)sizeof(html) == length){
-							result = webpage_new(url, depth, html);
-						}
-						free(html);
 					}
 				}
 			}
