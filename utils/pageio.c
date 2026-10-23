@@ -80,7 +80,6 @@ webpage_t *pageload(int id, char *dirnm){
 							if (i == length){
 								result = webpage_new(url, depth, html);
 							}
-							free(html);
 						}
 					}
 				}

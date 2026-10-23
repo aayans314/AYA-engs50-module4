@@ -50,6 +50,7 @@ int main (void){
 
 	webpage_delete(test_page);
 	webpage_delete(retest_page);
+	exit(EXIT_SUCCESS);
 
 	return 0;
 }
