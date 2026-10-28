@@ -83,8 +83,8 @@ webpage_t *pageload(int id, char *dirnm){
 						}
 					}
 				}
-			}
 			fclose(fp);
+			}
 		}
 	}
 
