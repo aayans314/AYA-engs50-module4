@@ -4,6 +4,7 @@
 #include <inttypes.h>
 #include <unistd.h>
 #include "hash.h"
+#include "indexio.h"
 
 #define HTSIZE 1000
 #define MAXWORD 512

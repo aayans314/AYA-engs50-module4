@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include "webpage.h"
 #include "hash.h"
+#include "queue.h"
 
 typedef struct doc {
 	int id;
