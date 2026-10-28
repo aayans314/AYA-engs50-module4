@@ -1,4 +1,4 @@
-
+//step 5
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -166,30 +166,43 @@ static int32_t addword(hashtable_t *index, char *word, int id) {
 	return result;
 }
  
-int main(void) {
-	int id = 1;
+int main(int argc, char *argv[]) {
+
+    if(argc!=2){
+        printf("usage: indexer <id>\n");
+        exit(EXIT_FAILURE);
+    }
+
+	int id = atoi(argv[1]);
+
+
 	char *dirname = "../pages";
 	webpage_t *page;
 	hashtable_t *index;
+
 	char *word = NULL;
 	int pos = 0;
- 
-	page = pageload(id, dirname);
-	if (page == NULL) {
-		printf("failed to load webpage %d from %s\n", id, dirname);
-		exit(EXIT_FAILURE);
-	}
- 
+    
 	index = hopen(HTSIZE);
 	if (index == NULL) {
 		printf("failed to create the index\n");
-		webpage_delete(page);
 		exit(EXIT_FAILURE);
 	}
  
+
+    for (int j = 1; j <= id; j++){
+	page = pageload(j, dirname);
+	if (page == NULL) {
+		printf("failed to load webpage %d from %s\n", j, dirname);
+        happly(index, freeentry);
+        hclose(index);
+		exit(EXIT_FAILURE);
+	}
+ 
+    pos = 0;
 	while ((pos = webpage_getNextWord(page, pos, &word)) > 0) {
 		if (NormalizeWord(word)) {
-			if (addword(index, word, id) != 0) {
+			if (addword(index, word, j) != 0) {
 				printf("failed to add a word to the index\n");
 			}
 		} else {
@@ -197,11 +210,11 @@ int main(void) {
 		}
 		word = NULL;
 	}
- 
-	printf("sum of word counts in page %d: %d\n", id, sumwords(index));
+    webpage_delete(page);
+}
+	printf("sum of word counts upto page %d: %d\n", id, sumwords(index));
  
 	happly(index, freeentry);
 	hclose(index);
-	webpage_delete(page);
 	exit(EXIT_SUCCESS);
 }
