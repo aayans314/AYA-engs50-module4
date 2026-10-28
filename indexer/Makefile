@@ -16,4 +16,4 @@ clean:
 
 rebuild:
 	$(MAKE) clean
-	$(MAKE) indexer
+	$(MAKE) all
