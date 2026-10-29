@@ -25,7 +25,7 @@
 
 /* usage(): print the usage statement and exit with failure */
 static void usage(void) {
-	printf("usage: crawler <seedurl> <pagedir> <maxdepth>\n");
+	printf("usage: crawler <seedurl> (https://thayer.github.io/engs50/) <pagedir> <maxdepth>\n");
 	exit(EXIT_FAILURE);
 }
 
