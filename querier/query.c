@@ -85,6 +85,18 @@ int indexValue (hashtable_t *htp, char *str){
 
 }
 
+static void freeentry(void *elementp) {
+	wordentry_t *we = (wordentry_t *)elementp;
+	doc_t *dp;
+ 
+	while ((dp = (doc_t *)qget(we->docs)) != NULL) {
+		free(dp);
+	}
+	qclose(we->docs);
+	free(we->word);
+	free(we);
+}
+
 int main(void) {
  
 	char line[MAXQUERYWORDS * MAXWORDLENGTH];
@@ -141,6 +153,7 @@ int main(void) {
 	printf("\n");   /* so the shell prompt starts on its own line after ^D */
  
 	/* free the index here*/
+	happly(index, freeentry);
 	hclose(index);
 	return 0;
 }
