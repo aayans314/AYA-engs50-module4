@@ -26,7 +26,7 @@
 #define DELIMITERS " \t\n"
 
 // please change here for your indexname
-#define INDEXFILE "../indexer/index-depth1" 
+#define INDEXFILE "../indexer/index-depth3" 
 
 bool isStringAlpha(const char *str) {
 
@@ -77,7 +77,7 @@ int indexValue (hashtable_t *htp, char *str){
 	int count = 0;
 	// this is just for 1 document so we will only have 1 doc_t
 	if (we != NULL){
-	int docid = 1;
+	int docid = 5;
 	doc_t *doc = qsearch(we->docs, searchDocs, &docid); // change docid  here to loop
   if(doc != NULL) count = doc->count;
 	}
