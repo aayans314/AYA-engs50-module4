@@ -77,15 +77,13 @@ bool searchDocs (void* elementp, const void* keyp){
 	return (doc->id == *key);
 }
 
-int indexValue (hashtable_t *htp, char *str, int *docid){ //include document ID for loop
+int indexValue (hashtable_t *htp, char *str, int *docid){
 
 	wordentry_t *we = hsearch(htp, searchIndex, str, strlen(str));
 	int count = 0;
-	// this is just for 1 document so we will only have 1 doc_t
 	if (we != NULL){
-
-	doc_t *doc = qsearch(we->docs, searchDocs, docid); // change docid  here to loop
-  if(doc != NULL) count = doc->count;
+		doc_t *doc = qsearch(we->docs, searchDocs, docid);
+		if(doc != NULL) count = doc->count;
 	}
 	return count;
 
@@ -170,10 +168,6 @@ int main(void) {
 					printf("rank: %d : doc: %d : %s \n", minCount, j, url);
 				}
 			}
-			/* if every word was skipped (e.g. "is it or"), print nothing */
-			//make sure to remove the print statements of the previous ones and add new ones
-			//should print back the words in the querie and
-			//rank: <rN> : doc: <docIDN> : <urlN> \n
 		}
  
 		printf("> ");

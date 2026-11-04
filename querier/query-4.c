@@ -11,8 +11,8 @@
  * otherwise "[invalid query]" is printed. A line with no words prints
  * nothing. The program exits on EOF (Ctrl-D).
  *
- * Now, it takes a COMPLEX query and it creates a ranked list of the documents that
- * have all of the words in the query
+ * Now, it takes a COMPLEX query and it creates a ranked list of the documents
+ * that have all of the words in the query
  */
 
 #include <stdio.h>
@@ -81,26 +81,25 @@ int indexValue (hashtable_t *htp, char *str, int *docid){ //include document ID 
 
 	wordentry_t *we = hsearch(htp, searchIndex, str, strlen(str));
 	int count = 0;
-	// this is just for 1 document so we will only have 1 doc_t
 	if (we != NULL){
 
-	doc_t *doc = qsearch(we->docs, searchDocs, docid); // change docid  here to loop
+	doc_t *doc = qsearch(we->docs, searchDocs, docid);
+	
   if(doc != NULL) count = doc->count;
+
 	}
 	return count;
 
 }
 
-static void printquery(int nwords, char **query){
+static void printdisplay(int nwords, char **display){
 
 	for (int i = 0; i < nwords; i++){
-		printf("%s ", query[i]);
+		printf("%s ", display[i]);
 	}
 	printf("\n");
 
-}
-
-	
+}	
 
 static void freeentry(void *elementp) {
 	wordentry_t *we = (wordentry_t *)elementp;
@@ -118,6 +117,10 @@ int main(void) {
  
 	char line[MAXQUERYWORDS * MAXWORDLENGTH];
 	char *query[MAXQUERYWORDS];
+	char *display[MAXQUERYWORDS];
+
+	int groupStart[MAXQUERYWORDS];
+	int groupEnd[MAXQUERYWORDS];
  
 	/* load the index once, before reading any queries */
 	hashtable_t *index = indexload(INDEXFILE);
@@ -131,55 +134,130 @@ int main(void) {
  
 		/* start fresh for every line */
 		int nwords = 0;
+		int ndisplay = 0;
+		int ngroups = 1;
+		int groupWords = 0;
 		bool valid = true;
+		bool expectWord = true;
  
 		/* split the line into words, checking each one */
 		char *word = strtok(line, DELIMITERS);
+
+		groupStart[nwords] = nwords; //group start at 0 = 0
+		
 		while (word != NULL) {
 			/* too many words, or a word with digits/punctuation */
-			if (nwords == MAXQUERYWORDS || !isStringAlpha(word)) {
+			if (ndisplay == MAXQUERYWORDS || !isStringAlpha(word)) {
 				valid = false;
 				break;
 			}
+			
 			lowercaseString(word);
-			query[nwords] = word;
-			if ( strcmp(query[nwords], "or") == 0) {
+			display[ndisplay] = word;
+			ndisplay++;
 				
-			nwords++;
-			word = strtok(NULL, DELIMITERS);
+			if ( strcmp(word, "or") == 0) {
+
+				// OR can't be before a word or after another operator
+				if (expectWord || groupWords == 0){
+					valid = false;
+					break;
+				}
+
+				//break into groups based on or separator
+				groupEnd[ngroups - 1] = nwords;
+				groupStart[ngroups] = nwords;
+				ngroups++;
+
+				groupWords = 0;
+				expectWord = true;
+			}
+			else if (strcmp(word, "and") == 0){
+
+				// AND can't be before a word or after another operator
+				if (expectWord){
+					valid = false;
+					break;
+				}
+
+				expectWord = true;
+			}
+			else {
+
+				query[nwords] = word;
+				nwords++;
+				groupWords++;
+				expectWord = false;
+			}
+			
+		 	word = strtok(NULL, DELIMITERS);
+
 		}
- 
+
+		//query can't end in AND or OR
+		if (expectWord && nwords > 0){
+			valid = false;
+		}
+
 		// only decide what to print once the whole line is checked
 		if (!valid) {
 			printf("[invalid query]\n");
 		}
 		else if (nwords > 0) {
 
-			printquery(nwords, query); //print query back
+			groupEnd[ngroups - 1] = nwords;
+			int ranks[IDNUM];
+			
+			printdisplay(nwords, display); //print full query back
 			for (int j = 1; j <= IDNUM; j++){ //loop for amount of webpages
-				int minCount = -1;   /* -1 means no word has been counted yet */
-				bool hasAll = true;
-				for (int i = 0; i < nwords; i++) {
-					if (hasMoreThan3(query[i]) && strcmp(query[i], "and") != 0 && strcmp(query[i], "or") != 0) {
-						int currCount = indexValue(index, query[i], &j);
-						if (currCount == 0) hasAll = false; 
-						if (minCount == -1 || currCount < minCount) minCount = currCount;
+				int totalRank = 0;
+
+				// process each OR groups separately
+				for (int g = 0; g < ngroups; g++){
+					int minCount = -1;   /* -1 means no word has been counted yet */
+
+					//find minCount within group
+					for (int k = groupStart[g]; k < groupEnd[g]; k++){
+
+						if (hasMoreThan3(query[k])) {
+							int currCount = indexValue(index, query[k], &j);
+						
+							if (minCount == -1 || currCount < minCount){
+								minCount = currCount;
+							}
+						}
+					}
+					if (minCount != -1){
+						totalRank += minCount;
 					}
 				}
-				if (hasAll){ //has to have all words to rank
-					webpage_t *pagep = pageload(j, DIRNAME);
-					char *url = webpage_getURL(pagep);
-					printf("rank: %d : doc: %d : %s \n", minCount, j, url);
-				}
+				ranks[j-1]= totalRank;
 			}
-			/* if every word was skipped (e.g. "is it or"), print nothing */
-			//make sure to remove the print statements of the previous ones and add new ones
-			//should print back the words in the querie and
-			//rank: <rN> : doc: <docIDN> : <urlN> \n
+
+			//rank highest to lowest
+			bool printed[IDNUM] = {false};
+
+			for (int h = 0; h < IDNUM; h++){
+				int best = -1; // -1 means no rank has been organized
+
+				//ranking what is left
+				for (int d = 0; d < IDNUM; d++){
+
+					if (!printed[d] && (best == -1 || ranks[d] > ranks[best])){
+						best = d;
+					}
+				}
+				
+				webpage_t *pagep = pageload(best+1, DIRNAME);
+				char *url = webpage_getURL(pagep);
+				printf("rank: %d : doc: %d : %s \n", ranks[best], best+1, url);
+				printed[best] = true;
+				
+			}
 		}
- 
 		printf("> ");
 	}
+	
  
 	printf("\n");   /* so the shell prompt starts on its own line after ^D */
  
