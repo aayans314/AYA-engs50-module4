@@ -75,5 +75,6 @@ int main(void) {
 	lqclose(NULL);             /* should do nothing */
 
 	lqclose(lqp);
+	printf("SUCCESS\n");
 	exit(EXIT_SUCCESS);
 }

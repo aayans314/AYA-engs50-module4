@@ -6,6 +6,7 @@
  * its interface, and unlocks the mutex. No queue code is reimplemented.
  */
 #include <stdlib.h>
+#include <stdbool.h>
 #include <pthread.h>
 #include "queue.h"
 #include "lqueue.h"
@@ -30,7 +31,7 @@ lqueue_t *lqopen(void) {
 			lq = NULL;
 		}
 	}
-	return lq;
+	return (lqueue_t*)lq;
 }
 
 void lqclose(lqueue_t *lqp) {
@@ -40,6 +41,7 @@ void lqclose(lqueue_t *lqp) {
 		qclose(lq->qp);
 		pthread_mutex_destroy(&lq->lock);
 		free(lq);
+		lq = NULL;
 	}
 }
 
